@@ -7,7 +7,7 @@
 const WORD_RE = /\p{L}+(?:['’]\p{L}+)?/gu;
 
 function normalizeTerm(term) {
-  return String(term || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return String(term || '').normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function parseNumeric(text) {
@@ -112,7 +112,7 @@ function countRegexMatches(text, re) {
 }
 
 function tokenizeLineText(text) {
-  const m = String(text || '').toLowerCase().match(WORD_RE);
+  const m = String(text || '').normalize('NFC').toLowerCase().match(WORD_RE);
   return m ? m : [];
 }
 
