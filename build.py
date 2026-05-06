@@ -18,10 +18,10 @@ IGNORED_TEXT_TAGS = {
     "work",
 }
 ALLOWED_TESTAMENTS = {"Old Testament", "New Testament"}
+COMMENTARY_INTEREST_SOURCE = "historical_christian_faith_interest.json"
 SOURCE_CANDIDATES = (
     "deu-luther1912.osis.xml",
     "ger-luther1912.osis.xml",
-    "eng-kjv.osis.xml",
 )
 BOOK_ORDER = [
     "Gen", "Exod", "Lev", "Num", "Deut", "Josh", "Judg", "Ruth", "1Sam", "2Sam", "1Kgs", "2Kgs",
@@ -284,9 +284,62 @@ def format_location(book_id, book_abbr, chapter=None, verse=None):
     return location
 
 
+def load_commentary_interest(project_root: Path):
+    source_path = project_root / "commentary" / COMMENTARY_INTEREST_SOURCE
+    if not source_path.exists():
+        return {"metadata": {"commentators": []}, "verses": {}}
+    payload = json.loads(source_path.read_text(encoding="utf-8"))
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    verses = payload.get("verses") if isinstance(payload.get("verses"), dict) else {}
+    return {"metadata": metadata, "verses": verses}
+
+
+def get_commentary_columns(metadata):
+    columns = []
+    for item in metadata.get("commentators", []):
+        key = normalize_ws(str(item.get("key", "")))
+        if not key:
+            continue
+        columns.append(
+            {
+                "key": key,
+                "name": normalize_ws(str(item.get("name", key))),
+                "label": normalize_ws(str(item.get("label", item.get("name", key)))),
+            }
+        )
+    return columns
+
+
+def empty_commentary_fields(commentary_columns):
+    return {"commentary_interest": 0}
+
+
+def commentary_fields_for(canonical_id, commentary_verses, commentary_columns):
+    fields = empty_commentary_fields(commentary_columns)
+    item = commentary_verses.get(canonical_id) or {}
+    try:
+        fields["commentary_interest"] = int(item.get("total") or 0)
+    except (TypeError, ValueError):
+        fields["commentary_interest"] = 0
+    by_commentator = item.get("by_commentator") if isinstance(item.get("by_commentator"), dict) else {}
+    for column in commentary_columns:
+        try:
+            count = int(by_commentator.get(column["key"]) or 0)
+        except (TypeError, ValueError):
+            count = 0
+        if count:
+            fields[f"commentary_{column['key']}"] = count
+    return fields
+
+
 def build(source_path: Path, out_dir: Path):
     tree = ET.parse(source_path)
     root = tree.getroot()
+    project_root = source_path.parent.parent
+    commentary_interest = load_commentary_interest(project_root)
+    commentary_metadata = commentary_interest["metadata"]
+    commentary_verses = commentary_interest["verses"]
+    commentary_columns = get_commentary_columns(commentary_metadata)
 
     data_dir = out_dir / "data"
     lines_dir = out_dir / "lines"
@@ -310,6 +363,7 @@ def build(source_path: Path, out_dir: Path):
         verses = extract_verses(book_elem)
         chapter_numbers = sorted({v["chapter"] for v in verses if v.get("chapter") is not None})
         book_total_words = 0
+        book_commentary_fields = empty_commentary_fields(commentary_columns)
 
         for verse in verses:
             text = verse["text"]
@@ -321,6 +375,11 @@ def build(source_path: Path, out_dir: Path):
             verse_num = int(verse["verse"] or 0)
             canonical_id = verse["osis_id"] or f"{book_abbr}.{chapter_num}.{verse_num}"
             location = format_location(book_id, book_abbr, chapter_num, verse_num)
+            verse_commentary_fields = commentary_fields_for(
+                canonical_id, commentary_verses, commentary_columns
+            )
+            for key, value in verse_commentary_fields.items():
+                book_commentary_fields[key] = book_commentary_fields.get(key, 0) + value
             unique_words = len(set(toks))
             total_words = len(toks)
             book_total_words += total_words
@@ -342,19 +401,20 @@ def build(source_path: Path, out_dir: Path):
                 "num_lines": 1,
                 "characters_present_count": 0,
             }
+            chunk_row.update(verse_commentary_fields)
             chunks.append(chunk_row)
-            all_lines.append(
-                {
-                    "play_id": book_id,
-                    "canonical_id": canonical_id,
-                    "location": location,
-                    "act": chapter_num,
-                    "scene": verse_num,
-                    "line_num": verse_id,
-                    "speaker": "",
-                    "text": text,
-                }
-            )
+            line_row = {
+                "play_id": book_id,
+                "canonical_id": canonical_id,
+                "location": location,
+                "act": chapter_num,
+                "scene": verse_num,
+                "line_num": verse_id,
+                "speaker": "",
+                "text": text,
+            }
+            line_row.update(verse_commentary_fields)
+            all_lines.append(line_row)
 
             verse_unigrams = {}
             verse_bigrams = {}
@@ -375,21 +435,21 @@ def build(source_path: Path, out_dir: Path):
             for term, count in verse_trigrams.items():
                 tokens3.setdefault(term, []).append([verse_id, count])
 
-        plays.append(
-            {
-                "play_id": book_id,
-                "location": format_location(book_id, book_abbr),
-                "title": book_title,
-                "abbr": book_abbr,
-                "genre": testament,
-                "first_performance_year": None,
-                "num_acts": len(chapter_numbers),
-                "num_scenes": len(verses),
-                "num_speeches": 0,
-                "total_words": book_total_words,
-                "total_lines": len(verses),
-            }
-        )
+        book_row = {
+            "play_id": book_id,
+            "location": format_location(book_id, book_abbr),
+            "title": book_title,
+            "abbr": book_abbr,
+            "genre": testament,
+            "first_performance_year": None,
+            "num_acts": len(chapter_numbers),
+            "num_scenes": len(verses),
+            "num_speeches": 0,
+            "total_words": book_total_words,
+            "total_lines": len(verses),
+        }
+        book_row.update(book_commentary_fields)
+        plays.append(book_row)
 
     (data_dir / "plays.json").write_text(
         json.dumps(plays, ensure_ascii=False), encoding="utf-8"
@@ -406,6 +466,24 @@ def build(source_path: Path, out_dir: Path):
     )
     (data_dir / "tokens3.json").write_text(
         json.dumps(tokens3, ensure_ascii=False), encoding="utf-8"
+    )
+    (data_dir / "commentary_interest.json").write_text(
+        json.dumps(
+            {
+                "metadata": commentary_metadata,
+                "summary": {
+                    "source_file": COMMENTARY_INTEREST_SOURCE,
+                    "total_commentators": len(commentary_metadata.get("commentators", [])),
+                    "verses_with_interest": len(commentary_verses),
+                    "total_interest": sum(
+                        int((item or {}).get("total") or 0)
+                        for item in commentary_verses.values()
+                    ),
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
     )
     (data_dir / "tokens_char.json").write_text("{}", encoding="utf-8")
     (data_dir / "tokens_char2.json").write_text("{}", encoding="utf-8")

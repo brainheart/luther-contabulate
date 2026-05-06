@@ -59,5 +59,5 @@ npx playwright test
 ## Notes
 
 - Generated JSON under `docs/data/` and `docs/lines/` is committed output for the static site.
-- The frontend preserves the KJV Contabulate interaction model while remapping the hierarchy to testament/book/chapter/verse.
+- The frontend preserves the Bible Contabulate interaction model while remapping the hierarchy to testament/book/chapter/verse.
 - Tokenization preserves German letters, including umlauts and `ß`, in both the build output and browser-side verse search.

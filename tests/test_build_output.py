@@ -21,6 +21,7 @@ class TestBuildOutputExists(unittest.TestCase):
         "tokens_char2.json",
         "tokens_char3.json",
         "character_name_filter_config.json",
+        "commentary_interest.json",
     ]
 
     def test_all_data_files_exist(self):
@@ -87,7 +88,7 @@ class TestVerses(unittest.TestCase):
         self.assertEqual(first["scene"], 1)
 
     def test_verse_has_required_fields(self):
-        required = {"scene_id", "canonical_id", "location", "play_id", "act", "scene", "total_words"}
+        required = {"scene_id", "canonical_id", "location", "play_id", "act", "scene", "total_words", "commentary_interest"}
         for verse in self.verses[:25]:
             self.assertTrue(required.issubset(verse.keys()))
 
@@ -98,6 +99,12 @@ class TestVerses(unittest.TestCase):
     def test_unique_scene_ids(self):
         verse_ids = [verse["scene_id"] for verse in self.verses]
         self.assertEqual(len(verse_ids), len(set(verse_ids)))
+
+    def test_commentary_interest_counts_known_hotspot(self):
+        by_id = {verse["canonical_id"]: verse for verse in self.verses}
+        self.assertGreater(by_id["John.1.1"]["commentary_interest"], 0)
+        self.assertGreater(by_id["John.1.1"]["commentary_augustine"], 0)
+        self.assertGreater(by_id["John.1.1"]["commentary_theophylact_of_ohrid"], 0)
 
 
 class TestTokens(unittest.TestCase):
