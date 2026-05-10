@@ -21,7 +21,7 @@ async function search(page, query, { gran = 'play', ngramMode = '1', matchMode =
   await page.press('#q', 'Enter');
   await page.waitForSelector('#results tbody tr', { timeout: 10000 });
   if (gran === 'line') {
-    await expect(page.locator('#results thead')).toContainText('Verse Text', { timeout: 10000 });
+    await expect(page.locator('#results thead')).toContainText('Verse', { timeout: 10000 });
   }
 }
 
@@ -92,11 +92,36 @@ test.describe('Segments Search', () => {
     expect(await page.locator('#results tbody tr').count()).toBeGreaterThan(0);
   });
 
-  test('verse text rows render highlights', async ({ page }) => {
+  test('verse rows render highlights', async ({ page }) => {
     const sample = await pickSampleQuery(page);
     await search(page, sample, { gran: 'line' });
     await page.locator('#segmentsTab details summary').click();
     await expect(page.locator('#results tbody td .hit').first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test('granularity selector uses Verse for verse text rows', async ({ page }) => {
+    const options = await page.locator('#gran option').evaluateAll((opts) =>
+      opts.map((opt) => ({ value: opt.value, text: (opt.textContent || '').trim() }))
+    );
+    expect(options.some((opt) => opt.value === 'scene')).toBeFalsy();
+    expect(options).toContainEqual({ value: 'line', text: 'Verse' });
+  });
+
+  test('maps legacy verse URL granularities to text-backed Verse view', async ({ page }) => {
+    const sample = await pickSampleQuery(page);
+    await page.goto(`/?q=${sample}&nm=1&gran=line&mm=exact&sk=location&sd=asc&cs=1&zr=0&hl=1`);
+    await waitForDataLoaded(page);
+    await page.waitForSelector('#results tbody tr', { timeout: 10000 });
+    await expect(page.locator('#gran')).toHaveValue('line');
+    let texts = await page.locator('#results thead th').allTextContents();
+    expect(texts.some(t => t.includes('Verse'))).toBeTruthy();
+
+    await page.goto(`/?q=${sample}&nm=1&gran=scene&mm=exact&sk=location&sd=asc&cs=1&zr=0&hl=1`);
+    await waitForDataLoaded(page);
+    await page.waitForSelector('#results tbody tr', { timeout: 10000 });
+    await expect(page.locator('#gran')).toHaveValue('line');
+    texts = await page.locator('#results thead th').allTextContents();
+    expect(texts.some(t => t.includes('Verse'))).toBeTruthy();
   });
 });
 
@@ -113,12 +138,12 @@ test.describe('Verses Tab', () => {
     await page.click('.tab-btn[data-tab="lines"]');
     await page.fill('#linesQuery', sample);
     await page.press('#linesQuery', 'Enter');
-    await expect(page.locator('#linesResults thead')).toContainText('Verse Text', { timeout: 10000 });
+    await expect(page.locator('#linesResults thead')).toContainText('Verse', { timeout: 10000 });
     const texts = await page.locator('#linesResults thead th').allTextContents();
     expect(texts.some(t => t.includes('Book'))).toBeTruthy();
     expect(texts.some(t => t.includes('Chapter'))).toBeTruthy();
-    expect(texts.some(t => t.includes('Verse'))).toBeTruthy();
+    expect(texts.some(t => t.includes('Verse #'))).toBeTruthy();
     expect(texts.some(t => t.includes('# comments'))).toBeTruthy();
-    expect(texts.some(t => t.includes('Verse Text'))).toBeTruthy();
+    expect(texts.some(t => t.includes('Verse'))).toBeTruthy();
   });
 });
