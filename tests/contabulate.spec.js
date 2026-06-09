@@ -40,7 +40,9 @@ test.describe('Page Load', () => {
     expect(texts.some(t => t.includes('Location'))).toBeTruthy();
     expect(texts.some(t => t.includes('Book'))).toBeTruthy();
     expect(texts.some(t => t.includes('# words'))).toBeTruthy();
+    expect(texts.some(t => t.includes('# verses'))).toBeTruthy();
     expect(texts.some(t => t.includes('# comments'))).toBeTruthy();
+    expect(texts.some(t => t.includes('Comments / verse'))).toBeTruthy();
   });
 });
 
@@ -63,6 +65,8 @@ test.describe('Segments Search', () => {
     const sample = await pickSampleQuery(page);
     await search(page, sample, { gran: 'play' });
     let texts = await page.locator('#results thead th').allTextContents();
+    expect(texts.some(t => t.includes('# verses'))).toBeTruthy();
+    expect(texts.some(t => t.includes('Comments / verse'))).toBeTruthy();
     expect(texts.some(t => t.includes('Augustine of Hippo'))).toBeFalsy();
 
     await page.locator('#segmentsTab details summary').click();

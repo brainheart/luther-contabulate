@@ -49,11 +49,13 @@ class TestBooks(unittest.TestCase):
             "genre",
             "total_words",
             "total_lines",
+            "verse_count",
             "num_acts",
             "num_scenes",
         }
         for book in self.books:
             self.assertTrue(required.issubset(book.keys()), f"Missing fields for {book.get('title')}")
+            self.assertEqual(book["verse_count"], book["total_lines"])
 
     def test_testament_counts(self):
         counts = Counter(book["genre"] for book in self.books)
@@ -88,9 +90,10 @@ class TestVerses(unittest.TestCase):
         self.assertEqual(first["scene"], 1)
 
     def test_verse_has_required_fields(self):
-        required = {"scene_id", "canonical_id", "location", "play_id", "act", "scene", "total_words", "commentary_interest"}
+        required = {"scene_id", "canonical_id", "location", "play_id", "act", "scene", "total_words", "verse_count", "commentary_interest"}
         for verse in self.verses[:25]:
             self.assertTrue(required.issubset(verse.keys()))
+            self.assertEqual(verse["verse_count"], 1)
 
     def test_all_verses_reference_valid_books(self):
         for verse in self.verses:
