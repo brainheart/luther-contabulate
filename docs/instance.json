@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "luther",
+  "emoji": "✝️",
+  "title": "Luther Bible",
+  "tagline": "Luther Bible Tabular Explorer",
+  "language": "German",
+  "url": "https://luther.contabulate.org/",
+  "source": "https://github.com/brainheart/luther-contabulate",
+  "sample_queries": [],
+  "updated": "2026-07-07",
+  "stats": {
+    "texts": 66,
+    "text_label": "books",
+    "segments": 31171,
+    "segment_label": "verses",
+    "words": 697989,
+    "distinct_words": 20563
+  }
+}

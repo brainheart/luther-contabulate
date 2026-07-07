@@ -1,3 +1,4 @@
+import datetime
 import json
 import math
 import re
@@ -484,16 +485,42 @@ def build(source_path: Path, out_dir: Path):
     tok_rarity = {tok: -math.log10(f / corpus_total) for tok, f in corpus_freq.items()}
     verse_chars = {}
     verse_rarity = {}
+    verse_hapax = {}
     for tok, postings in tokens.items():
         length = len(tok)
         rarity = tok_rarity[tok]
+        is_hapax = corpus_freq[tok] == 1
         for vid, count in postings:
             verse_chars[vid] = verse_chars.get(vid, 0) + length * count
             verse_rarity[vid] = verse_rarity.get(vid, 0.0) + rarity * count
+            if is_hapax:
+                verse_hapax[vid] = verse_hapax.get(vid, 0) + count
     for chunk_row in chunks:
         vid = chunk_row["scene_id"]
         chunk_row["char_count"] = verse_chars.get(vid, 0)
         chunk_row["rarity_sum"] = round(verse_rarity.get(vid, 0.0), 3)
+        chunk_row["hapax_count"] = verse_hapax.get(vid, 0)
+
+    instance_meta_path = Path(__file__).resolve().parent / "instance-meta.json"
+    instance_meta = json.loads(instance_meta_path.read_text(encoding="utf-8")) if instance_meta_path.exists() else {}
+    instance_payload = {
+        "schema": 1,
+        **instance_meta,
+        "updated": datetime.date.today().isoformat(),
+        "stats": {
+            "texts": len(plays),
+            "text_label": instance_meta.get("text_label", "books"),
+            "segments": len(chunks),
+            "segment_label": instance_meta.get("segment_label", "verses"),
+            "words": sum(p.get("total_words", 0) for p in plays),
+            "distinct_words": len(tokens),
+        },
+    }
+    instance_payload.pop("text_label", None)
+    instance_payload.pop("segment_label", None)
+    (out_dir / "instance.json").write_text(
+        json.dumps(instance_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     (data_dir / "plays.json").write_text(
         json.dumps(plays, ensure_ascii=False), encoding="utf-8"

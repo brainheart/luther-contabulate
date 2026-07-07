@@ -1,0 +1,12 @@
+{
+  "id": "luther",
+  "emoji": "✝️",
+  "title": "Luther Bible",
+  "tagline": "Luther Bible Tabular Explorer",
+  "language": "German",
+  "url": "https://luther.contabulate.org/",
+  "source": "https://github.com/brainheart/luther-contabulate",
+  "text_label": "books",
+  "segment_label": "verses",
+  "sample_queries": []
+}

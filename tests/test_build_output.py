@@ -151,6 +151,15 @@ class TestVerseRows(unittest.TestCase):
 
 
 class TestCharacterOutputs(unittest.TestCase):
+    def test_hapax_counts_and_instance_json(self):
+        chunks = json.loads((DATA_DIR / "chunks.json").read_text())
+        self.assertIn("hapax_count", chunks[0])
+        self.assertGreater(sum(c["hapax_count"] for c in chunks), 5000)
+        instance = json.loads((DATA_DIR.parent / "instance.json").read_text())
+        self.assertEqual(instance["id"], "luther")
+        self.assertEqual(instance["stats"]["texts"], 66)
+        self.assertEqual(instance["stats"]["segments"], 31171)
+
     def test_characters_are_empty_for_bible_build(self):
         chars = json.loads((DATA_DIR / "characters.json").read_text())
         self.assertEqual(chars, [])
