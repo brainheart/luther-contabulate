@@ -172,3 +172,16 @@ test.describe('Verses Tab', () => {
     await expect(page.locator('#results tbody tr').first()).toBeVisible();
   });
 });
+
+test('vocabulary scope survives switching the n-gram size', async ({ page }) => {
+  await page.goto('/?gran=word&s_ft_location=%5E01%5C.Gen%5C.');
+  await waitForDataLoaded(page);
+  await page.waitForSelector('#results tbody tr', { timeout: 10000 });
+  await expect(page.locator('#segmentsActiveFilters .active-filter-chip')).toContainText('starts with 01.Gen.');
+  // Switching word -> bigram keeps the same scope in place
+  await page.selectOption('#gran', 'bigram');
+  await page.waitForSelector('#results tbody tr', { timeout: 10000 });
+  await expect(page.locator('#segmentsActiveFilters .active-filter-chip')).toContainText('starts with 01.Gen.');
+  await page.selectOption('#gran', 'trigram');
+  await expect(page.locator('#segmentsActiveFilters .active-filter-chip')).toContainText('starts with 01.Gen.');
+});
