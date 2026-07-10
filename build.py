@@ -307,11 +307,12 @@ def format_location(book_id, book_abbr, chapter=None, verse=None):
 def load_commentary_interest(project_root: Path):
     source_path = project_root / "commentary" / COMMENTARY_INTEREST_SOURCE
     if not source_path.exists():
-        return {"metadata": {"commentators": []}, "verses": {}}
+        return {"metadata": {"commentators": []}, "summary": {}, "verses": {}}
     payload = json.loads(source_path.read_text(encoding="utf-8"))
     metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    summary = payload.get("summary") if isinstance(payload.get("summary"), dict) else {}
     verses = payload.get("verses") if isinstance(payload.get("verses"), dict) else {}
-    return {"metadata": metadata, "verses": verses}
+    return {"metadata": metadata, "summary": summary, "verses": verses}
 
 
 def get_commentary_columns(metadata):
@@ -358,6 +359,7 @@ def build(source_path: Path, out_dir: Path):
     project_root = source_path.parent.parent
     commentary_interest = load_commentary_interest(project_root)
     commentary_metadata = commentary_interest["metadata"]
+    commentary_summary = commentary_interest["summary"]
     commentary_verses = commentary_interest["verses"]
     commentary_columns = get_commentary_columns(commentary_metadata)
 
@@ -543,6 +545,7 @@ def build(source_path: Path, out_dir: Path):
             {
                 "metadata": commentary_metadata,
                 "summary": {
+                    **commentary_summary,
                     "source_file": COMMENTARY_INTEREST_SOURCE,
                     "total_commentators": len(commentary_metadata.get("commentators", [])),
                     "verses_with_interest": len(commentary_verses),

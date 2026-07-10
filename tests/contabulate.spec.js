@@ -77,12 +77,54 @@ test.describe('Segments Search', () => {
     await popover.locator('.add-column-search').fill('theophylact');
     const theophylact = popover.locator('.add-column-option', { hasText: 'Theophylact' });
     await expect(theophylact).toHaveCount(1);
-    await expect(theophylact.locator('.count')).toHaveText('8,088');
+    await expect(theophylact.locator('.count')).toHaveText('8,087');
     await theophylact.click();
     await page.keyboard.press('Escape');
     texts = await page.locator('#results thead th').allTextContents();
     expect(texts.some(t => t.includes('Augustine of Hippo'))).toBeTruthy();
     expect(texts.some(t => t.includes('Theophylact of Ohrid'))).toBeTruthy();
+  });
+
+  test('commentary counts open readable HCF records with source links', async ({ page }) => {
+    const commentButton = page.locator('#results tbody .commentary-count-link').first();
+    await expect(commentButton).toBeVisible();
+    await commentButton.click();
+    await expect(page.locator('.commentary-detail-overlay.open')).toBeVisible();
+    await expect(page.locator('#commentaryDetailTitle')).toContainText('Historical commentary');
+    const firstRow = page.locator('.commentary-detail-table tbody tr').first();
+    await expect(firstRow).toBeVisible({ timeout: 20000 });
+    await expect(firstRow.locator('.commentary-comment-cell')).not.toBeEmpty();
+    await expect(firstRow.locator('.commentary-link-cell a', { hasText: 'HCF passage' })).toHaveAttribute(
+      'href',
+      /historicalchristian\.faith/
+    );
+    await page.locator('.commentary-detail-close').click();
+  });
+
+  test('commentary deep links filter authors and restrict modern text to previews', async ({ page }) => {
+    await page.goto('/?cm=John.1.1~cs_lewis');
+    await waitForDataLoaded(page);
+    await expect(page.locator('.commentary-detail-overlay.open')).toBeVisible();
+    await expect(page.locator('#commentaryDetailTitle')).toContainText('CS Lewis');
+    const firstRow = page.locator('.commentary-detail-table tbody tr').first();
+    await expect(firstRow).toBeVisible({ timeout: 20000 });
+    await expect(firstRow.locator('.commentary-commentator-cell')).toContainText('CS Lewis');
+    await expect(firstRow.locator('.commentary-rights-note')).toContainText('Short preview only');
+    await expect(firstRow.locator('.commentary-link-cell a', { hasText: 'HCF passage' })).toBeVisible();
+  });
+
+  test('commentary details become stacked cards on narrow screens', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/?cm=John.1.1~augustine');
+    await waitForDataLoaded(page);
+    await expect(page.locator('.commentary-detail-overlay.open')).toBeVisible();
+    const firstRow = page.locator('.commentary-detail-table tbody tr').first();
+    await expect(firstRow).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('.commentary-detail-table thead')).toBeHidden();
+    const fitsModal = await page.locator('.commentary-detail-body').evaluate(
+      (element) => element.scrollWidth <= element.clientWidth + 1
+    );
+    expect(fitsModal).toBeTruthy();
   });
 
   test('count cells drill down and ancestor cells filter', async ({ page }) => {

@@ -749,7 +749,7 @@ td.add-column-cell {
 }
 .commentary-detail-overlay.open { display: flex; }
 .commentary-detail-modal {
-  width: min(1100px, calc(100vw - 2rem));
+  width: min(1280px, calc(100vw - 2rem));
   max-height: 84vh;
   background: linear-gradient(to bottom, var(--parchment) 0%, #fefdfb 100%);
   border: 1px solid var(--border);
@@ -823,17 +823,43 @@ td.add-column-cell {
 .commentary-link-cell {
   white-space: nowrap;
 }
+.commentary-ref-cell {
+  min-width: 7rem;
+}
+.commentary-commentator-cell {
+  min-width: 9rem;
+}
+.commentary-commentator-cell a {
+  color: var(--burgundy);
+  font-weight: 600;
+}
+.commentary-commentator-meta {
+  display: block;
+  margin-top: 0.15rem;
+  color: #6d5b4f;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+.commentary-year-cell {
+  white-space: nowrap;
+}
 .commentary-work-cell {
-  max-width: 13rem;
+  min-width: 10rem;
+  max-width: 16rem;
 }
 .commentary-work-ref {
   color: #6d5b4f;
   font-size: 0.88em;
 }
 .commentary-comment-cell {
-  width: 55%;
+  width: 48%;
+}
+.commentary-link-cell {
+  min-width: 7rem;
 }
 .commentary-link-cell a {
+  display: block;
+  margin-bottom: 0.25rem;
   color: var(--burgundy);
   font-weight: 600;
 }
@@ -855,6 +881,13 @@ td.add-column-cell {
 .commentary-preview-unavailable {
   color: #6d5b4f;
   font-style: italic;
+}
+.commentary-rights-note {
+  margin-top: 0.35rem;
+  color: #6d5b4f;
+  font-size: 0.8rem;
+  font-style: italic;
+  line-height: 1.35;
 }
 .commentary-detail-pagination {
   margin: 0;
@@ -1004,6 +1037,104 @@ tr.pd-name-excluded td {
   table {
     display: block;
     overflow-x: auto;
+  }
+}
+@media (max-width: 700px) {
+  .commentary-detail-overlay {
+    align-items: center;
+    padding: 0.5rem;
+  }
+  .commentary-detail-modal {
+    width: 100%;
+    max-height: calc(100vh - 1rem);
+  }
+  .commentary-detail-head {
+    padding: 0.8rem 0.8rem 0.65rem;
+  }
+  .commentary-detail-head h3 {
+    font-size: 1.05rem;
+    padding-right: 2rem;
+  }
+  .commentary-detail-meta {
+    padding-right: 1.6rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+  .commentary-detail-body {
+    padding: 0 0.7rem 0.7rem;
+  }
+  .commentary-detail-table,
+  .commentary-detail-table tbody {
+    display: block;
+    width: 100%;
+    overflow: visible;
+  }
+  .commentary-detail-table thead {
+    display: none;
+  }
+  .commentary-detail-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.2rem 0.75rem;
+    padding: 0.75rem 0.15rem;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+  }
+  .commentary-detail-table tbody td {
+    display: block;
+    min-width: 0;
+    max-width: none;
+    width: auto;
+    padding: 0.1rem 0.2rem;
+    border: 0;
+  }
+  .commentary-detail-table .commentary-ref-cell {
+    grid-column: 1;
+    grid-row: 1;
+    font-weight: 700;
+  }
+  .commentary-detail-table .commentary-year-cell {
+    grid-column: 2;
+    grid-row: 1;
+    color: #6d5b4f;
+  }
+  .commentary-detail-table .commentary-commentator-cell,
+  .commentary-detail-table .commentary-work-cell,
+  .commentary-detail-table .commentary-comment-cell,
+  .commentary-detail-table .commentary-link-cell {
+    grid-column: 1 / -1;
+  }
+  .commentary-detail-table .commentary-work-cell {
+    color: #5b4738;
+    font-size: 0.88rem;
+  }
+  .commentary-detail-table .commentary-work-cell::before {
+    content: "Work: ";
+    font-weight: 700;
+  }
+  .commentary-detail-table .commentary-comment-cell {
+    margin-top: 0.25rem;
+  }
+  .commentary-detail-table .commentary-link-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.85rem;
+    margin-top: 0.25rem;
+    white-space: normal;
+  }
+  .commentary-detail-table .commentary-link-cell a {
+    margin: 0;
+  }
+  .commentary-detail-table .commentary-preview-clamp {
+    -webkit-line-clamp: 5;
+  }
+  .commentary-detail-pagination {
+    gap: 0.35rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
+  }
+  .commentary-detail-pagination label {
+    width: 100%;
   }
 }
 .is-hidden {

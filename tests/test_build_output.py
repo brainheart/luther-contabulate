@@ -7,6 +7,7 @@ from pathlib import Path
 
 DATA_DIR = Path(__file__).parent.parent / "docs" / "data"
 LINES_DIR = Path(__file__).parent.parent / "docs" / "lines"
+COMMENTARY_DIR = Path(__file__).parent.parent / "docs" / "commentary"
 
 
 class TestBuildOutputExists(unittest.TestCase):
@@ -163,6 +164,55 @@ class TestCharacterOutputs(unittest.TestCase):
     def test_characters_are_empty_for_bible_build(self):
         chars = json.loads((DATA_DIR / "characters.json").read_text())
         self.assertEqual(chars, [])
+
+
+class TestCommentaryDetails(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.interest = json.loads((DATA_DIR / "commentary_interest.json").read_text())
+        cls.chunks = {
+            row["canonical_id"]: row
+            for row in json.loads((DATA_DIR / "chunks.json").read_text())
+        }
+        cls.john = json.loads((COMMENTARY_DIR / "John.json").read_text())
+
+    def test_has_lazy_detail_file_for_every_book(self):
+        detail_books = self.interest["metadata"]["detail_books"]
+        self.assertEqual(len(detail_books), 66)
+        self.assertEqual(len(list(COMMENTARY_DIR.glob("*.json"))), 66)
+        self.assertEqual(
+            self.interest["metadata"]["detail_path_template"],
+            "commentary/{book}.json",
+        )
+
+    def test_verse_count_matches_detail_references(self):
+        detail_indexes = self.john["verses"]["John.1.1"]
+        self.assertEqual(
+            len(detail_indexes),
+            self.chunks["John.1.1"]["commentary_interest"],
+        )
+
+    def test_detail_records_have_stable_ids_and_provenance(self):
+        ids = [record[2] for record in self.john["comments"]]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertTrue(all(value.startswith("hcf-") for value in ids))
+        first = self.john["comments"][0]
+        author = self.john["authors"][first[0]]
+        work = self.john["works"][first[1]]
+        self.assertTrue(author["name"])
+        self.assertTrue(work[0])
+        self.assertGreater(len(first[8].split()), 24)
+        self.assertEqual(first[9], 0)
+        self.assertTrue(first[10].startswith("https://historicalchristian.faith/"))
+
+    def test_modern_records_only_include_short_previews(self):
+        restricted = [record for record in self.john["comments"] if record[9] == 1]
+        self.assertGreater(len(restricted), 0)
+        self.assertTrue(all(1930 < record[7] < 9999 for record in restricted))
+        self.assertTrue(all(len(record[8].split()) <= 24 for record in restricted))
+        self.assertTrue(
+            all(record[10].startswith("https://historicalchristian.faith/") for record in restricted)
+        )
 
 
 if __name__ == "__main__":

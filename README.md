@@ -31,6 +31,7 @@ Outputs:
 - `docs/data/chunks.json` for verses
 - `docs/data/tokens.json`, `tokens2.json`, `tokens3.json`
 - `docs/lines/all_lines.json` for verse-text search
+- `docs/commentary/*.json` for lazy-loaded individual historical comments
 
 ## Run Locally
 
@@ -59,5 +60,6 @@ npx playwright test
 ## Notes
 
 - Generated JSON under `docs/data/` and `docs/lines/` is committed output for the static site.
+- Commentary counts and readable comment records come from the HistoricalChristianFaith Commentaries Database; see `commentary/README.md` for regeneration and rights handling.
 - The frontend preserves the Bible Contabulate interaction model while remapping the hierarchy to testament/book/chapter/verse.
 - Tokenization preserves German letters, including umlauts and `ß`, in both the build output and browser-side verse search.
