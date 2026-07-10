@@ -516,6 +516,8 @@ def build(source_path: Path, out_dir: Path):
             "segment_label": instance_meta.get("segment_label", "verses"),
             "words": sum(p.get("total_words", 0) for p in plays),
             "distinct_words": len(tokens),
+            "commentaries": len(commentary_metadata.get("commentators", [])),
+            "comments": int(commentary_summary.get("mapped_comment_count", 0) or 0),
         },
     }
     instance_payload.pop("text_label", None)

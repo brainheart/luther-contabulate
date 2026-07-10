@@ -5,16 +5,19 @@
   "title": "Luther Bible",
   "tagline": "Luther Bible Tabular Explorer",
   "language": "German",
+  "created": "2026-03-27",
   "url": "https://luther.contabulate.org/",
   "source": "https://github.com/brainheart/luther-contabulate",
   "sample_queries": [],
-  "updated": "2026-07-09",
+  "updated": "2026-07-10",
   "stats": {
     "texts": 66,
     "text_label": "books",
     "segments": 31171,
     "segment_label": "verses",
     "words": 697989,
-    "distinct_words": 20563
+    "distinct_words": 20563,
+    "commentaries": 313,
+    "comments": 86767
   }
 }

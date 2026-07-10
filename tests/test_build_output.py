@@ -158,8 +158,11 @@ class TestCharacterOutputs(unittest.TestCase):
         self.assertGreater(sum(c["hapax_count"] for c in chunks), 5000)
         instance = json.loads((DATA_DIR.parent / "instance.json").read_text())
         self.assertEqual(instance["id"], "luther")
+        self.assertEqual(instance["created"], "2026-03-27")
         self.assertEqual(instance["stats"]["texts"], 66)
         self.assertEqual(instance["stats"]["segments"], 31171)
+        self.assertEqual(instance["stats"]["commentaries"], 313)
+        self.assertEqual(instance["stats"]["comments"], 86767)
 
     def test_characters_are_empty_for_bible_build(self):
         chars = json.loads((DATA_DIR / "characters.json").read_text())

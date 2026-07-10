@@ -4,6 +4,7 @@
   "title": "Luther Bible",
   "tagline": "Luther Bible Tabular Explorer",
   "language": "German",
+  "created": "2026-03-27",
   "url": "https://luther.contabulate.org/",
   "source": "https://github.com/brainheart/luther-contabulate",
   "text_label": "books",
