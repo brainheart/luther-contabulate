@@ -567,6 +567,10 @@ def build(source_path: Path, out_dir: Path):
     (data_dir / "character_name_filter_config.json").write_text(
         json.dumps(
             {
+                "enabled": False,
+                "notes": [
+                    "Disabled: this corpus does not yet have a reviewed proper-name list."
+                ],
                 "global_additions": [],
                 "global_removals": [],
                 "play_additions": {},
